@@ -1,0 +1,35 @@
+{
+    "name": "eminos/statamic-field-item-relationship",
+    "type": "statamic-addon",
+    "description": "A Statamic addon the adds a Field Item Relationship fieldtype.",
+    "license": "MIT",
+    "require": {
+        "statamic/cms": "^3.0||^4.0"
+    },
+    "require-dev": {
+        "php": "^8.1",
+        "laravel/framework": "^10.8",
+        "statamic/cms": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Eminos\\StatamicFieldItemRelationship\\": "src"
+        }
+    },
+    "extra": {
+        "statamic": {
+            "name": "Statamic Field Item Relationship",
+            "description": "A Statamic addon the adds a Field Item Relationship fieldtype."
+        },
+        "laravel": {
+            "providers": [
+                "Eminos\\StatamicFieldItemRelationship\\ServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pixelfear/composer-dist-plugin": true
+        }
+    }
+}
