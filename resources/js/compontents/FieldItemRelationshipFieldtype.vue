@@ -170,25 +170,23 @@ export default {
 
     mounted() {
         if (this.config.source_type === 'sibling_or_ancestor') {
-            let parent = this.$parent
-    
-            while (parent) {
-                parent.$children.forEach((child) => {
-                    if (child.field && child.field.handle === this.config.source_field) {
-                        this.sourceComponent = child
-                    } 
-                    
-                    else if (child.config && child.config.handle === this.config.source_field) {
-                        this.sourceComponent = child
-                    }
-                })
 
-                if (this.sourceComponent) {
-                    break
-                }
-    
-                parent = parent.$parent
+            function cssEscape(string) {
+                return string.replace(/[!"#$%&'()*+,\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
             }
+
+            const element = document.querySelector(cssEscape(`.publish-field__${this.config.source_field}`))
+
+            if (
+                element && element.__vue__ &&
+                (
+                    (element.__vue__.field && element.__vue__.field.handle === this.config.source_field) ||
+                    (element.__vue__.config && element.__vue__.config.handle === this.config.source_field)
+                )
+            ) {
+                this.sourceComponent = element.__vue__
+            }
+
         }
     }
 };
