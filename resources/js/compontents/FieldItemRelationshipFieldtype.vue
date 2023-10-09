@@ -160,9 +160,24 @@ export default {
             }
         },
         getOptionLabel(option) {
+            // https://youmightnotneed.com/lodash#get
+            const get = (obj, path, defValue) => {
+                if (!path) return undefined
+                const pathArray = Array.isArray(path) ? path : path.match(/([^[.\]])+/g)
+                const result = pathArray.reduce(
+                    (prevObj, key) => prevObj && prevObj[key],
+                    obj
+                )
+                return result === undefined ? defValue : result
+            }
+
             if (this.config.option_label_source) {
-                return option[this.config.option_label_source]
+                return get(option, this.config.option_label_source, option)
             } else {
+                if (option.date_field) {
+                    return option.date_field.time ? option.date_field.date + ' ' + option.date_field.time : option.date_field.date
+                }
+
                 return option
             }
         },
