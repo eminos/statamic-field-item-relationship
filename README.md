@@ -16,6 +16,7 @@ composer require eminos/statamic-field-item-relationship
 
 - The source field could be a sibling or ancestor field, or come from a Global set.
 - Set which key/field should be used as the select option label.
+- Use string literal for advanced option label configuration (see [screenshot #4](#screenshot-4))
 - Choose what you want to save as the selected item.
   - Key/Index
   - Specified object key
@@ -51,7 +52,17 @@ Or by specifying the target field in the tag like this:
 
 Even nested fields work, like this:
 ```html
-{{ fir:field_item_relationship_field:some_field:child_field }}
+{{ fir:field_item_relationship_field:some_field.child_field }}
+```
+
+You can also get Global fields:
+```
+{{ fir:global_set:field_item_relationship_field:nested.target.path }}
+```
+
+An other way is to use the field and path parameters:
+```
+{{ fir field="global_set:field_item_relationship_field" path="some_field.child_field" }}
 ```
 
 ## Screenshots
@@ -64,6 +75,11 @@ A real life example with the source field being in a Global set.
 
 The field configuration options.
 ![Screenshot of the field configuration](docs/screenshot3.png)
+
+<div id="screenshot-4"></div>
+
+Advanced option label configuration.
+![Screenshot of field item relationship fields with advanced option label configurations](docs/screenshot4.png)
 
 ## Possible improvements
 
