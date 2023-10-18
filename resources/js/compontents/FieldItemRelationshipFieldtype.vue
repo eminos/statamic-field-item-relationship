@@ -177,7 +177,9 @@ export default {
             if (this.config.option_label_source) {
                 if (this.config.option_label_source.startsWith('`') && this.config.option_label_source.endsWith('`')) {
                     const o = option // just a shorter option
-                    return eval(this.config.option_label_source)
+                    return (function() {
+                        return eval(this.config.option_label_source)
+                    }).call(this, o)
                 }
                 
                 return get(option, this.config.option_label_source, option)
