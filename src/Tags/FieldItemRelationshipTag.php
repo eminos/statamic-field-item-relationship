@@ -3,28 +3,45 @@
 namespace Eminos\StatamicFieldItemRelationship\Tags;
 
 use Statamic\Tags\Tags;
-use Statamic\Fields\Value;
  
 class FieldItemRelationshipTag extends Tags
 {
     protected static $handle = 'fir';
 
-    protected $path;
     protected $value;
+    protected $field;
+    protected $global;
+    protected $path;
     protected $rawSourceFieldValue;
 
     public function wildcard($inputString)
     {
-        $inputParts = explode(':', $inputString);
+        if ($inputString === 'index') {
+            $fieldName = $this->params->get('field');
+            $this->path = $this->params->get('path');
+        } else {
+            $inputParts = explode(':', $inputString, 3);
 
-        $fieldName = array_shift($inputParts);
+            if (count($inputParts) === 3) {
+                $fieldName = $inputParts[0] . ':' . $inputParts[1];
+                $this->path = str_replace(':', '.', $inputParts[2]);
+            } else {
+                $fieldName = array_shift($inputParts);
+                $this->path = implode('.', $inputParts);
+            }
+        }
 
-        $this->path = implode('.', $inputParts);
+        if (str_contains($fieldName, ':')) {
+            [$globalHandle, $fieldName] = explode(':', $fieldName, 2);
 
-        /**
-         * @var Value $value
-         */
-        $this->value = array_get($this->context, $fieldName);
+            $this->global = \Statamic\Facades\GlobalSet::find($globalHandle);
+
+            $this->field = $this->global->blueprint()->field($fieldName);
+            $this->value = $this->global->inCurrentSite()->get($fieldName);
+        } else {
+            $this->field = $this->context->get($fieldName);
+            $this->value = array_get($this->context, $fieldName)->raw();
+        }
 
         if (!$this->value) {
             return null;
@@ -43,57 +60,35 @@ class FieldItemRelationshipTag extends Tags
 
     private function getRawSourceFieldValue()
     {
-        $sourceType = $this->value->fieldtype()->field()->config()['source_type'];
+        $sourceType = $this->field->config()['source_type'];
 
         if ($sourceType === 'sibling_or_ancestor') {
-            $sourceFieldHandle = $this->value->fieldtype()->field()->config()['source_field'];
-            $sourceField = array_get($this->context, $sourceFieldHandle);
-            if (!$sourceField) {
-                return null;
+            $sourceFieldHandle = $this->field->config()['source_field'];
+
+            if ($this->global) {
+                return $this->global->inCurrentSite()->get($sourceFieldHandle);
+            } else {
+                return array_get($this->context, $sourceFieldHandle)->raw();
             }
-            $rawValue = $sourceField->raw();
         }
 
         if ($sourceType === 'global') {
-            $global = \Statamic\Facades\GlobalSet::find($this->value->fieldtype()->field()->config()['source_global']);
-            $rawValue = $global->inCurrentSite()->get($this->value->fieldtype()->field()->config()['source_field']);
+            $global = \Statamic\Facades\GlobalSet::find($this->field->config()['source_global']);
+            return $global->inCurrentSite()->get($this->field->config()['source_field']);
         }
-
-        return $rawValue;
     }
 
     private function getTargetValue()
     {
-        $saveAs = $this->value->fieldtype()->field()->config()['save_as'];
-
-        if ($saveAs === 'value') {
-            return $this->value->raw();
-        }
-
         $values = collect($this->rawSourceFieldValue);
 
-        if ($saveAs === 'object_key') {
-            $objectKey = $this->value->fieldtype()->field()->config()['object_key'];
-            
-            return $values->firstWhere($objectKey, $this->value->raw());
-        }
-
-        if ($saveAs === 'id') {
-            $objectKey = 'id';
-            
-            return $values->firstWhere($objectKey, $this->value->raw());
-        }
-
-        if ($saveAs === 'object') {
-            $objectKey = $this->value->fieldtype()->field()->config()['object_key'];
-            
-            return $values->firstWhere($objectKey, $this->value->raw()[$objectKey]);
-        }
-
-        if ($saveAs === 'index' || $saveAs === 'key') {
-            $index = $this->value->raw();
-            
-            return $values->get($index);
-        }
+        return match ($this->field->config()['save_as']) {
+            'value'         => $this->value,
+            'object_key'    => $values->firstWhere($this->field->config()['object_key'], $this->value),
+            'id'            => $values->firstWhere('id', $this->value),
+            'object'        => $values->firstWhere($this->field->config()['object_key'], $this->value[$this->field->config()['object_key']]),
+            'index', 'key'  => $values->get($this->value) ?? null,
+            default         => null,
+        };
     }
 }
