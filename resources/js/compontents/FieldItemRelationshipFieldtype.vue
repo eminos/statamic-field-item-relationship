@@ -13,6 +13,12 @@
                     Source field "{{ config.source_field }}" has no items.
                 </div>
             </template>
+            <template #option="option">
+                <div v-html="getOptionLabel(option)"></div>
+            </template>
+            <template #selected-option="option">
+                <div v-html="getOptionLabel(option)"></div>
+            </template>
         </v-select>
 
         <div v-if="errorMessage" v-text="errorMessage" class="mt-2 text-red-500 text-sm"></div>
@@ -21,6 +27,8 @@
 </template>
 
 <script>
+import { get } from '../helpers.js'
+
 export default {
 
     mixins: [Fieldtype],
@@ -106,11 +114,13 @@ export default {
             }
 
             if (this.config.save_as === 'id') {
-                return this.items.find(item => item._id === (this.value._id ?? this.value))
+                return this.items.find(item => item._id === (this.value._id ?? this.value.id ?? this.value) || item.id === (this.value._id ?? this.value.id ?? this.value));
             }
 
             if (['object', 'object_key'].includes(this.config.save_as)) {
-                return this.items.find(item => item[this.config.object_key] === (this.value[this.config.object_key] ?? this.value))
+                const objectKey = this.config.object_key
+                const value = get(this.value, objectKey, this.value)
+                return this.items.find(item => get(item, objectKey) === value)
             }
         },
     },
@@ -144,46 +154,44 @@ export default {
             }
 
             if (this.config.save_as === 'id') {
-                this.update(value._id)
+                this.update(value._id ?? value.id)
             }
 
             if (this.config.save_as === 'index') {
                 if (this.itemsAreObjects) {
-                    this.update(this.items.findIndex(item => item._id === value._id))
+                    this.update(this.items.findIndex(item => {
+                        const itemId = item._id ?? item.id
+                        const valueId = value._id ?? value.id
+                        return itemId === valueId
+                    }))
                 } else {
                     this.update(this.items.findIndex(item => item === value))
                 }
             }
 
             if (this.config.save_as === 'object_key') {
-                this.update(value[this.config.object_key])
+                this.update(get(value, this.config.object_key))
             }
         },
         getOptionLabel(option) {
-            // https://youmightnotneed.com/lodash#get
-            const get = (obj, path, defValue) => {
-                if (!path) return undefined
-                const pathArray = Array.isArray(path) ? path : path.match(/([^[.\]])+/g)
-                const result = pathArray.reduce(
-                    (prevObj, key) => prevObj && prevObj[key],
-                    obj
-                )
-                return result === undefined ? defValue : result
+            if (this.config.option_label_source) {
+                if (this.config.option_label_source.startsWith('`') && this.config.option_label_source.endsWith('`')) {
+                    const o = option // just a shorter option
+                    return eval(this.config.option_label_source)
+                }
+                
+                return get(option, this.config.option_label_source, option)
             }
 
-            if (this.config.option_label_source) {
-                return get(option, this.config.option_label_source, option)
-            } else {
-                return option
-            }
-        },
+            return option
+        }
     },
 
     mounted() {
         if (this.config.source_type === 'sibling_or_ancestor') {
 
             function cssEscape(string) {
-                return string.replace(/[!"#$%&'()*+,\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+                return string.replace(/[!"#$%&'()*+,\/:;<=>?@[\\\]^`{|}~]/g, '\\$&')
             }
 
             const element = document.querySelector(cssEscape(`.publish-field__${this.config.source_field}`))

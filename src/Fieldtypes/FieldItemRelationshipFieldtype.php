@@ -106,7 +106,7 @@ class FieldItemRelationshipFieldtype extends Fieldtype
             'option_label_source' => [
                 'type' => 'text',
                 'display' => 'Option label source',
-                'instructions' => 'If the source field saves its value as an array of objects, which object key should be the label.',
+                'instructions' => 'If the source field saves its value as an array of objects, which object key should be the label.<br>You can use dot notation to access nested keys.<br>For more advanced use cases, you can use a string literal (\`back ticks\`) and use the `o` variable to access the option value object.',
             ],
             'save_as' => [
                 'type' => 'button_group',
