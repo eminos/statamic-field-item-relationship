@@ -53,8 +53,13 @@ class FieldItemRelationshipFieldtype extends Fieldtype
                     'error_message' => "Global set \"{$this->config('source_global_set')}\" not found.",
                 ];
             }
-
-            $sourceValue = $global->inCurrentSite()->get($this->config('source_field'));
+            
+            $site = request()->query('site');
+            if ($site) {
+              $sourceValue = $global->in($site)->get($this->config('source_field'));
+            } else {
+              $sourceValue = $global->inCurrentSite()->get($this->config('source_field'));
+            }
 
             if (!$sourceValue) {
                 return [
