@@ -55,6 +55,9 @@ class FieldItemRelationshipFieldtype extends Fieldtype
             }
             
             $site = request()->query('site');
+
+            $site = $this->field?->parent()?->locale() ?? $site;
+            
             if ($site) {
               $sourceValue = $global->in($site)->get($this->config('source_field'));
             } else {
