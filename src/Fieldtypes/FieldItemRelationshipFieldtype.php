@@ -2,6 +2,7 @@
 
 namespace Eminos\StatamicFieldItemRelationship\Fieldtypes;
 
+use Statamic\Facades\Site;
 use Statamic\Fields\Fieldtype;
 
 class FieldItemRelationshipFieldtype extends Fieldtype
@@ -54,15 +55,9 @@ class FieldItemRelationshipFieldtype extends Fieldtype
                 ];
             }
             
-            $site = request()->query('site');
-
-            $site = $this->field?->parent()?->locale() ?? $site;
+            $site = $this->resolveSiteHandle();
             
-            if ($site) {
-              $sourceValue = $global->in($site)->get($this->config('source_field'));
-            } else {
-              $sourceValue = $global->inCurrentSite()->get($this->config('source_field'));
-            }
+            $sourceValue = $global->in($site)->get($this->config('source_field'));
 
             if (!$sourceValue) {
                 return [
@@ -139,5 +134,21 @@ class FieldItemRelationshipFieldtype extends Fieldtype
             ],
 
         ];
+    }
+
+    protected function resolveSiteHandle(): ?string
+    {
+        $parent = $this->field?->parent();
+
+        if ($parent && method_exists($parent, 'site')) {
+            $site = $parent->site();
+
+            if ($site instanceof \Statamic\Sites\Site) {
+                return $site->handle();
+            }
+
+        }
+
+        return optional(Site::selected())->handle() ?? optional(Site::current())->handle();
     }
 }
