@@ -1,22 +1,29 @@
 # Statamic Field Item Relationship
 
-A Statamic plugin that adds a Field Item Relationship fieldtype.<br>
-With Field Item Relationship you can select a value from a source fields' items.
+A Statamic addon that adds a Field Item Relationship fieldtype.
+With Field Item Relationship you can select a value from a source field's items.
 That source field could be a sibling or ancestor field (in the same blueprint), or come from a Global set.
 
 ## Installation
 
-Install this plugin using composer.
+Install this addon using composer.
 
 ```cli
 composer require eminos/statamic-field-item-relationship
 ```
 
+## Statamic support
+
+| Statamic version | Addon version | Addon branch |
+| --- | --- | --- |
+| Statamic 3-5 | `1.x` | `1.x` |
+| Statamic 6 | `2.x` | `main` |
+
 ## Features
 
 - The source field could be a sibling or ancestor field, or come from a Global set.
 - Set which key/field should be used as the select option label.
-- Use string literal for advanced option label configuration (see [screenshot #4](#screenshot-4))
+- Use string literal for advanced option label configuration.
 - Choose what you want to save as the selected item.
   - Key/Index
   - Specified object key
@@ -25,7 +32,7 @@ composer require eminos/statamic-field-item-relationship
 
 ## Field configuration
 
-The field configuration will depend on the source field data type.<br>
+The field configuration will depend on the source field data type.
 Depending on if the source data is a simple array of strings, an array of objects or an individual object, different "Save as" options will be possible.
 
 You will get a warning message in the field if the field configuration isn't compatible with the source field data.
@@ -56,12 +63,12 @@ Even nested fields work, like this:
 ```
 
 You can also get Global fields:
-```
+```html
 {{ fir:global_set:field_item_relationship_field:nested.target.path }}
 ```
 
-An other way is to use the field and path parameters:
-```
+Another way is to use the field and path parameters:
+```html
 {{ fir field="global_set:field_item_relationship_field" path="some_field.child_field" }}
 ```
 
@@ -70,21 +77,14 @@ An other way is to use the field and path parameters:
 A few different examples.
 ![Screenshot of different source field types](docs/screenshot1.png)
 
-A real life example with the source field being in a Global set.
-![Screenshot of a field item relationship field using a Global set field as the source field](docs/screenshot2.png)
-
 The field configuration options.
-![Screenshot of the field configuration](docs/screenshot3.png)
-
-<div id="screenshot-4"></div>
-
-Advanced option label configuration.
-![Screenshot of field item relationship fields with advanced option label configurations](docs/screenshot4.png)
+![Screenshot of the field configuration](docs/screenshot2.png)
 
 ## Possible improvements
 
 - Multiselect
 - More selection fieldtype options (in addition to the Select fieldtype)
+- Support Assets fieldtype as source field.
 
 ## License
 

@@ -1,7 +1,8 @@
 {
   "resources/js/field-item-relationship-fieldtype.js": {
-    "file": "assets/field-item-relationship-fieldtype-3d7e9eab.js",
-    "isEntry": true,
-    "src": "resources/js/field-item-relationship-fieldtype.js"
+    "file": "assets/field-item-relationship-fieldtype-Dfn93cnk.js",
+    "name": "field-item-relationship-fieldtype",
+    "src": "resources/js/field-item-relationship-fieldtype.js",
+    "isEntry": true
   }
 }

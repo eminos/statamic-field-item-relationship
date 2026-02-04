@@ -9,7 +9,7 @@ class FieldItemRelationshipTag extends Tags
     protected static $handle = 'fir';
 
     protected $value;
-    protected $field;
+    protected $fieldtype;
     protected $global;
     protected $path;
     protected $rawSourceFieldValue;
@@ -36,14 +36,14 @@ class FieldItemRelationshipTag extends Tags
 
             $this->global = \Statamic\Facades\GlobalSet::find($globalHandle);
 
-            $this->field = $this->global->blueprint()->field($fieldName);
+            $this->fieldtype = $this->global->blueprint()->field($fieldName)->fieldtype();
             $this->value = $this->global->inCurrentSite()->get($fieldName);
         } else {
-            $this->field = $this->context->get($fieldName);
-            $this->value = array_get($this->context, $fieldName)->raw();
+            $this->fieldtype = $this->context->get($fieldName)->fieldtype();
+            $this->value = $this->context->raw($fieldName);
         }
 
-        if (!$this->value) {
+        if ($this->value === null) {
             return null;
         }
 
@@ -52,7 +52,7 @@ class FieldItemRelationshipTag extends Tags
         $targetValue = $this->getTargetValue();
 
         if ($this->path) {
-            return array_get($targetValue, $this->path);
+            return data_get($targetValue, $this->path);
         }
 
         return $targetValue;
@@ -60,21 +60,21 @@ class FieldItemRelationshipTag extends Tags
 
     private function getRawSourceFieldValue()
     {
-        $sourceType = $this->field->config()['source_type'];
+        $sourceType = $this->fieldtype->config()['source_type'];
 
         if ($sourceType === 'sibling_or_ancestor') {
-            $sourceFieldHandle = $this->field->config()['source_field'];
+            $sourceFieldHandle = $this->fieldtype->config()['source_field'];
 
             if ($this->global) {
                 return $this->global->inCurrentSite()->get($sourceFieldHandle);
             } else {
-                return array_get($this->context, $sourceFieldHandle)->raw();
+                return $this->context->raw($sourceFieldHandle);
             }
         }
 
         if ($sourceType === 'global') {
-            $global = \Statamic\Facades\GlobalSet::find($this->field->config()['source_global']);
-            return $global->inCurrentSite()->get($this->field->config()['source_field']);
+            $global = \Statamic\Facades\GlobalSet::find($this->fieldtype->config()['source_global']);
+            return $global->inCurrentSite()->get($this->fieldtype->config()['source_field']);
         }
     }
 
@@ -82,11 +82,11 @@ class FieldItemRelationshipTag extends Tags
     {
         $values = collect($this->rawSourceFieldValue);
 
-        return match ($this->field->config()['save_as']) {
+        return match ($this->fieldtype->config()['save_as']) {
             'value'         => $this->value,
-            'object_key'    => $values->firstWhere($this->field->config()['object_key'], $this->value),
+            'object_key'    => $values->firstWhere($this->fieldtype->config()['object_key'], $this->value),
             'id'            => $values->firstWhere('id', $this->value),
-            'object'        => $values->firstWhere($this->field->config()['object_key'], $this->value[$this->field->config()['object_key']]),
+            'object'        => $values->firstWhere($this->fieldtype->config()['object_key'], $this->value[$this->fieldtype->config()['object_key']]),
             'index', 'key'  => $values->get($this->value) ?? null,
             default         => null,
         };
